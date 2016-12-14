@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        #bg{
+            width:700px;
+            height:600px;
+            background:#2b2b2b;
+            margin:0 auto;
+            padding:2px 25px;
+            line-height: 25px;
+            position: relative;
+        }
+       .users{
+           padding:0 80px;
+       }
+        p{
+            color:#EEC104;
+            font-size: 14px;
+        }
+        i{
+            color:red;
+            font-style:normal;
+        }
+        h3{
+            color:#09A6D4;
+            text-indent: 40px;
+        }
+        span{
+            color:#ccc;
+            font-size: 14px;
+        }
+        input{
+            border-radius: 5px;
+            width:300px;
+            border:0;
+            height:20px;
+        }
+        #yzm{
+            width:100px;
+        }
+        .normal{
+            display:line-block;
+            width:80px;
+            height:20px;
+            background: #ccc;
+            float:left;
+            border-right:1px solid #999;
+            text-align: center;
+            line-height: 20px;
+            color:#fcfcfc;
+        }
+        .normal1{
+            width:60px;
+            background: #ccc;
+            color:#000000;
+            padding: 3px 10px;
+            cursor: pointer;
+        }
+        #pwdbg{
+            height:20px;
+            float:right;
+            margin-right:108px;
+        }
+        #btn{
+            width:100px;
+            height:30px;
+            font-size: 20px;
+            background:#2C67B5;
+            color:#ffffff;
+            cursor: pointer;
+        }
+        #check{
+            width:20px;
+            height:12px;
+        }
+        #niu{
+            text-align: center;
+            padding: 20px 0px;
+        }
+        #info{
+            position:absolute;
+            top:60px;
+            left:260px;
+            width:251px;
+            background: lightyellow;
+            color:#333;
+            text-align: center;
+        }
+    </style>
+    <script src="common.js"></script>
+    <script src="cookie.js"></script>
+    <script>
+        onload = function() {
+            /*
+             1)	用户名称只能包含数字、字母、下划线，长度不小于6位
+             2)	两次密码输入必须一致，长度在6-20位之间
+             3)	根据密码的复杂程度不同，显示密码的安全级别（低[红色]、中[橙色]、高[绿色]），在第二次输入确认密码时，安全级别根据所输入密码的不同实时变化。
+             4)	输入框中要有默认提示文字
+             5)	除密码安全级别以外，数据验证都要在输入框失去焦点时发生。
+             6)	手机号码只能输入数字（isNaN）
+             7)	所有的错误提示信息，要放在顶部的黄色提示框中显示
+             8)	点击数字验证码，更换一个新的4位数字
+             9)	在【10天内免登陆】前面打勾，注册后将用户名密码保存至cookie 当中
+             10)	所有的验证都通过后，点击注册表单才可以提交，否则点击无效果
+             */
+            var oUser = $("#user");
+            var oPwd1 = $("#pwd1");
+            var oPwd2 = $("#pwd2");
+            var spans = $(".normal");
+            var oPost = $("#post");
+            var oTel = $("#tel");
+            var oCheck = $("check");
+            var count = $(".normal1")[0];
+            var oBtn = $("#btn");
+            var oInfo = $("#info");
+            var oName= $("#name");
+            var oYzm= $("#yzm");
+            var flag1 = false;
+            var flag2 = false;
+            var flag3 = false;
+            var flag4 = false;
+            var flag5 = false;
+            var flag6 = false;
+            var flag7 = false;
+            count.value = create4();
+            //验证用户名
+            oUser.onblur = function () {
+                var val = oUser.value;
+                var regs = /^\w{6,}$/ig;
+                if(val.length<6){
+                    oInfo.innerHTML = "用户名长度不足6位";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="red";
+                    flag1=false;
+                }else{
+                    if(!regs.test(val)) {
+                        oInfo.innerHTML = "用户名不符合要求";
+                        oInfo.style.padding="3px 10px";
+                        oInfo.style.color="red";
+                        flag1=false;
+                    } else {
+                        oInfo.innerHTML = "用户名符合要求";
+                        oInfo.style.padding="3px 10px";
+                        oInfo.style.color="green";
+                        flag1=true;
+                    }
+                }
+            }
+            //第一个密码框验证 onblur
+            var reg = /^\w{6,20}$/;
+            oPwd1.onblur = function () {
+                var str=oPwd1.value;
+                var str3=oPwd2.value;
+                if(reg.test(str)){
+                    oInfo.innerHTML = "密码符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="green";
+                    flag2=true;
+                }else{
+                    oInfo.innerHTML = "密码不符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="red";
+                    flag2=false;
+                }
+                if(str==str3){
+                    oInfo.innerHTML = "密码一致";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="green";
+                    flag3=true;
+                }else{
+                    oInfo.innerHTML = "密码不一致";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="red";
+                    flag3=false;
+                }
+            }
+            //第二个密码框验证 onblur
+            oPwd2.onblur = function () {
+                var str1= oPwd1.value;
+                var str2= oPwd2.value;
+                if(reg.test(str2)){
+                    if(str1==str2){
+                        oInfo.innerHTML = "密码一致";
+                        oInfo.style.padding="3px 10px";
+                        oInfo.style.color="green";
+                        flag3=true;
+                    }else{
+                        oInfo.innerHTML = "密码不一致";
+                        oInfo.style.padding="3px 10px";
+                        oInfo.style.color="red";
+                        flag3=false;
+                    }
+                }else{
+                    oInfo.innerHTML = "密码不符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color="red";
+                    flag3=false;
+                }
+            }
+            /*
+             第二个密码框判断 安全级别判断
+             onkeyup
+             1 确定范围
+             \w{6,20}
+             2 \w{6,20}    数字字母下划线
+             数字(纯字母，纯下划线)| 任意两个  |   三个都有
+             [6,10]   低    1                低  2         低3
+             [11-15]  低    4                中 5         中6
+             [16-20]  低    7               中  8         高 9
+             低
+             reg123 /^\w{6,10}$/
+             reg471 /^\d{11,20}$/
+             reg472 /^[a-zA-Z]{11,20}$/
+             reg473 /^_{11,20}$/
+             高
+             reg91 /\d{1,}/ig;
+             reg92 /[a-zA-Z]{1,}/ig
+             reg93 /_{1,}/ig
+             reg94 /^\w{16,20}$/
+             中
+             else
+             */
+            oPwd2.onkeyup =function(){
+                var reg123 = /^\w{6,10}$/;
+                var reg471 = /^\d{11,20}$/;
+                var reg472 = /^[a-zA-Z]{11,20}$/;
+                var reg473 = /^_{11,20}$/;
+                var reg91 = /\d{1,}/ig;
+                var reg92 = /[a-zA-Z]{1,}/ig;
+                var reg93 = /_{1,}/ig;
+                var reg94 = /^\w{16,20}$/;
+                var val1 = oPwd2.value;
+                if(reg.test(val1)){
+                    for(var i=0;i<spans.length;i++){
+                        spans[i].style.background = "";
+                        spans[i].innerHTML = "";
+                    }
+                    if(reg123.test(val1) || reg471.test(val1)||reg472.test(val1)||reg473.test(val1)){
+                        oInfo.innerHTML = "密码强度低";
+                        oInfo.style.padding="3px 10px";
+                        spans[0].style.background = "red";
+                        spans[0].innerHTML = "低";
+                    }else if(reg91.test(val1) && reg92.test(val1) && reg93.test(val1) && reg94.test(val1)){
+                        oInfo.innerHTML = "密码强度高";
+                        oInfo.style.padding="3px 10px";
+                        spans[2].style.background = "green";
+                        spans[2].innerHTML = "高";
+                    }else{
+                        oInfo.innerHTML = "密码强度中";
+                        oInfo.style.padding="3px 10px";
+                        spans[1].style.background = "yellow";
+                        spans[1].innerHTML = "中";
+                    }
+                }else{
+                    oInfo.innerHTML = "由数字字母下划线组成最多20位";
+                    oInfo.style.padding="3px 10px";
+                    for(var i=0;i<spans.length;i++){
+                        spans[i].style.background = "";
+                        spans[i].innerHTML = "";
+                    }
+                }
+            }
+            //验证邮箱
+            oPost.onblur =function(){
+                var pattern=/^\w{3,10}@(\w{3,5})\.(com|cn|com.cn)$/;
+                var str5=oPost.value;
+                if(pattern.test(str5)){
+                    oInfo.innerHTML = "邮箱符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "green";
+                    flag4=true;
+                }else{
+                    oInfo.innerHTML = "邮箱符合不要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "red";
+                    flag4=false;
+                }
+            }
+            //姓名验证
+            oName.onblur =function(){
+                var str= oName.value;
+                var reg3=/^[\u4e00-\u9fa5]{2,4}$/;
+                if(reg3.test(str)){
+                    oInfo.innerHTML = "姓名符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "green";
+                    flag5=true;
+                }else{
+                    oInfo.innerHTML = "姓名不符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "red";
+                    flag5=false;
+                }
+            }
+            //手机号验证
+            oTel.onblur = function () {
+                var reg2 =/^1[0-9]{10}$/;
+                var str=oTel.value;
+                if(reg2.test(str)){
+                    oInfo.innerHTML = "手机号码符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "green";
+                    flag6=true;
+                }else{
+                    oInfo.innerHTML = "手机号码不符合要求";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "red";
+                    flag6=false;
+                }
+            }
+            //点击更换验证码
+            count.onclick =function(){
+                count.value=create4();
+            }
+            //验证码匹配
+            oYzm.onblur = function () {
+                var str1=oYzm.value;
+                if(coun.value==str1){
+                    oInfo.innerHTML = "验证码输入正确";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "green";
+                    flag7=true;
+                }else{
+                    oInfo.innerHTML = "验证码输入有误";
+                    oInfo.style.padding="3px 10px";
+                    oInfo.style.color = "red";
+                    flag7=false;
+                }
+            }
+            //注册按钮十天免登录
+            oBtn.onclick =function(){
+                if(flag1&&flag2&&flag3&&flag4&&flag5&&flag6&&flag7){
+                    var flag =oCheck.checked;
+                    var date = new Date();
+                    date.setDate(date.getDate()+10);
+                    if(flag){
+                        setCookie("username",oUser.value,date);
+                        setCookie("password",oPwd1.value,date);
+                    }
+                    open("自动生成表格.html");
+                }else{
+
+                }
+            }
+            /*
+             生成验证码的方法
+             */
+            function create4() {
+                var arr = [0,1,2,3,4,5,6,7,8,9];
+                var str = "";
+                for(var i=1;i<=4;i++){
+                    var index = Math.round(Math.random()*(arr.length-1));
+                    str += arr[index];
+                }
+                return str;
+            }
+        }
+    </script>
+</head>
+<body>
+<form id="bg" action="" method="">
+    <p>注意<i>*</i>为必填项</p>
+    <h3>账户详细资料</h3>
+    <div id="info"></div>
+    <div class="users">
+        <span> 用户名称</span>&nbsp;&nbsp;&nbsp;&ensp;
+            <i>*</i> <input type="text" id="user" placeholder="请输入用户名"/><br/><br/>
+        <span> 登录密码</span>&nbsp;&nbsp;&nbsp;&ensp;
+            <i>*</i> <input type="password" id="pwd1" placeholder="请输入密码"/><br/><br/>
+        <span>重复登录密码</span>&nbsp;&nbsp;
+           <i> *</i> <input type="password" id="pwd2" placeholder="重复登录密码"/><br/><br/>
+        <span>密码安全级别</span>&nbsp;&nbsp;
+           <i>*</i><div id="pwdbg"><span class="normal"></span><span class="normal"></span><span class="normal" style="border:0;"></span></div>
+    </div>
+    <h3>个人信息资料</h3>
+    <div class="users">
+        <span> 电子邮件</span>&nbsp;&nbsp;&nbsp;&ensp;
+        <i>*</i> <input type="text" id="post"placeholder="yu5651@163.com"/><br/><br/>
+        <span> 真实姓名</span>&nbsp;&nbsp;&nbsp;&ensp;
+        <i>*</i> <input type="text" id="name" placeholder="请输入真实姓名"/><br/><br/>
+        <span>中奖通知手机</span>&nbsp;&nbsp;
+        <i> *</i> <input type="text" id="tel" placeholder="请输入中奖通知手机"/><br/><br/>
+        <span>验证码 </span>&nbsp;&nbsp;&nbsp;&nbsp;
+        <i> *</i> <input type="text" id="yzm" placeholder="输入验证码"/>&nbsp;<input class="normal1" type="button" value="1234"/>
+        <div id="niu"><input id="btn" type="button" value="注册">&nbsp;
+            <input id="check" type="checkbox"><span>10天内免登录</span>
+        </div>
+    </div>
+
+</form>
+</body>
+</html>
